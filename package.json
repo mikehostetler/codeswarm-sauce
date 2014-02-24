@@ -1,0 +1,20 @@
+{
+  "name": "codeswarm-browser",
+  "version": "0.0.1",
+  "description": "Plugin for doing browser tests",
+  "private": true,
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/CodeSwarm/codeswarm-browser.git"
+  },
+  "author": "CodeSwarm",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CodeSwarm/codeswarm-browser/issues"
+  },
+  "homepage": "https://github.com/CodeSwarm/codeswarm-browser",
+  "dependencies": {
+    "request": "~2.34.0"
+  }
+}
