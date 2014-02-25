@@ -15,6 +15,7 @@
   },
   "homepage": "https://github.com/CodeSwarm/codeswarm-browser",
   "dependencies": {
-    "request": "~2.34.0"
+    "request": "~2.34.0",
+    "async": "~0.2.10"
   }
 }
