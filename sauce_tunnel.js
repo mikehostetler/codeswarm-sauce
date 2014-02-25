@@ -23,9 +23,9 @@ util.inherits(SauceTunnel, EventEmitter);
 SauceTunnel.prototype.openTunnel = function(callback) {
   var me = this;
 
-  var jarPath = process.env.SAUCE_JAR || __dirname + "/vendor/Sauce-Connect.jar";
+  var jarPath = process.env.SAUCE_JAR || (__dirname + "/vendor/Sauce-Connect.jar");
 
-  var args = ["-jar", , this.user, this.key];
+  var args = ["-jar", jarPath, this.user, this.key];
   if (this.identifier) {
     args.push("-i", this.identifier);
   }
