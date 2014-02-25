@@ -22,7 +22,7 @@ function test(build, stage, config, context) {
   if (! browsers) return stage.error(new Error('Need config.browsers'));
   var platforms = parsePlatforms(browsers);
 
-  async.parallel(urls, testOneUrl, done);
+  async.each(urls, testOneUrl, done);
 
   function testOneUrl(url, cb) {
 
@@ -45,9 +45,9 @@ function test(build, stage, config, context) {
       }
     };
 
-    request(requestParams, function(error, response, body) {
+    request(requestParams, function(err, response, body) {
 
-      if (error) return cb(err);
+      if (err) return cb(err);
       var results = body['js tests'];
 
       if (! results || ! results.length){
