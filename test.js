@@ -23,6 +23,7 @@ function test(build, stage, config, context) {
 
   var browsers = config.browsers;
   if (! browsers) return stage.error(new Error('Need config.browsers'));
+  if (! Array.isArray(browsers)) browsers = [browsers];
   var platforms = parsePlatforms(browsers);
 
   async.map(urls, testOneUrl, done);

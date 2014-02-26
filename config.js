@@ -27,6 +27,14 @@ module.exports = [
     from: frameworks
   },
   {
+    name: 'types',
+    label: 'File types',
+    type: 'selectMultiple',
+    from: [
+      'php'
+    ]
+  },
+  {
     name: 'browsers',
     label: 'Browsers',
     type: 'selectMultiple',

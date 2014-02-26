@@ -2,6 +2,7 @@ module.exports = prepare;
 
 function prepare(build, stage, config, context) {
   var types = config.types || [];
+  if (!Array.isArray(types)) types = [types];
 
   var args = [];
   types.forEach(function(type) {
@@ -16,13 +17,16 @@ function prepare(build, stage, config, context) {
   gateway.stdout.setEncoding('utf8');
   gateway.stdout.on('data', onGatewayData);
 
+  var success = false;
   var out = '';
   function onGatewayData(d) {
-    out += d;
-    detectSuccess();
+    console.log('[GATEWAY] %s'.blue, d);
+    if (! success) {
+      out += d;
+      detectSuccess();
+    }
   }
 
-  var success = false;
   function detectSuccess() {
     var match = out.match(/listening on port/);
     if (match) {
