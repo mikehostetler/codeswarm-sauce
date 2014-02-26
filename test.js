@@ -45,9 +45,11 @@ function test(build, stage, config, context) {
         name: testName(build),
         tags: ['codeswarm', build.project],
         build: build._id,
-        tunnel: tunnel.identifier
+        tunnel: "tunnel-identifier:" + tunnel.identifier
       }
     };
+
+    console.log('[cdodeswarm-browser] Sending request to Saucelabs: %j', requestParams);
 
     request(requestParams, function(err, response, body) {
 
@@ -82,7 +84,7 @@ function test(build, stage, config, context) {
         request(requestParams, replied);
 
         function replied(err, res, body) {
-          console.log('STATUS REPLY:', err, body);
+          console.log('[codeswarm-browser] STATUS REPLY: %j'.yellow, body);
           if (err) return cb(err);
           var results = body['js tests'];
 

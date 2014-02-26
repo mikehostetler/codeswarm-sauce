@@ -1,10 +1,9 @@
-/* npm */
-var request = require('request').defaults({jar:false});
-
-/* core */
-var util = require('util');
-var proc = require('child_process');
+var inherits     = require('util').inherits;
+var proc         = require('child_process');
 var EventEmitter = require('events').EventEmitter;
+var request      = require('request').defaults({jar:false});
+var uuid         = require('node-uuid').v4;
+
 
 module.exports = SauceTunnel;
 
@@ -13,12 +12,12 @@ function SauceTunnel(stage, user, key, identifier, extraFlags) {
   this.stage = stage;
   this.user = user;
   this.key = key;
-  this.identifier = identifier || 'Tunnel'+new Date().getTime();
+  this.identifier = identifier || uuid();
   this.baseUrl = ["https://", this.user, ':', this.key, '@saucelabs.com', '/rest/v1/', this.user].join("");
   this.extraFlags = extraFlags;
 }
 
-util.inherits(SauceTunnel, EventEmitter);
+inherits(SauceTunnel, EventEmitter);
 
 SauceTunnel.prototype.openTunnel = function(callback) {
   var me = this;

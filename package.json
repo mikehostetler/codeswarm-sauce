@@ -16,6 +16,7 @@
   "homepage": "https://github.com/CodeSwarm/codeswarm-browser",
   "dependencies": {
     "request": "~2.34.0",
-    "async": "~0.2.10"
+    "async": "~0.2.10",
+    "node-uuid": "~1.4.1"
   }
 }

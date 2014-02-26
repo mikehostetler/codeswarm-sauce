@@ -35,6 +35,11 @@ module.exports = [
     ]
   },
   {
+    name: 'before_script',
+    label: 'Before test scripts (one per line)',
+    type: 'text'
+  },
+  {
     name: 'browsers',
     label: 'Browsers',
     type: 'selectMultiple',
