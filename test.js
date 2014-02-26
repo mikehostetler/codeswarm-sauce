@@ -1,5 +1,8 @@
 var async   = require('async');
 var request = require('request').defaults({ jar: false });
+var resultParsers = require('./result_parsers');
+
+var STATUS_POLLING_INTERVAL_MS = 5000;
 
 module.exports = test;
 
@@ -22,13 +25,13 @@ function test(build, stage, config, context) {
   if (! browsers) return stage.error(new Error('Need config.browsers'));
   var platforms = parsePlatforms(browsers);
 
-  async.each(urls, testOneUrl, done);
+  async.map(urls, testOneUrl, done);
 
   function testOneUrl(url, cb) {
 
     var requestParams = {
       method: 'post',
-      url: url,
+      url: 'https://saucelabs.com/rest/v1/' + config.sauce_username + '/js-tests',
       auth: {
         user: config.sauce_username,
         pass: config.sauce_access_key
@@ -48,20 +51,59 @@ function test(build, stage, config, context) {
     request(requestParams, function(err, response, body) {
 
       if (err) return cb(err);
-      var results = body['js tests'];
+      var testIds = body['js tests'];
 
-      if (! results || ! results.length){
+      if (! testIds || ! testIds.length){
         return cb(new Error('Error starting tests in Sauce labs: ' + JSON.stringify(body)));
       }
 
-      cb(null, results);
+      async.map(testIds, checkStatus, cb);
 
     });
+
+    function checkStatus(testId, cb) {
+       var requestParams = {
+         method: 'post',
+         url: 'https://saucelabs.com/rest/v1/' + config.sauce_username + '/js-tests/status',
+         auth: {
+           user: config.sauce_username,
+           pass: config.sauce_access_key
+         },
+         json: true,
+         body: {
+           "js tests": [testId],
+         }
+       };
+
+       _checkStatus();
+
+       function _checkStatus() {
+        request(requestParams, replied);
+
+        function replied(err, res, body) {
+          console.log('STATUS REPLY:', err, body);
+          if (err) return cb(err);
+          var results = body['js tests'];
+
+          if (results && results[0] && results[0].status == 'test error')
+            return cb(new Error('Sauce Labs test error'));
+
+          if (! body.completed) {
+            /// call me later
+            setTimeout(_checkStatus, STATUS_POLLING_INTERVAL_MS);
+          } else {
+            cb(null, [0]);
+          }
+        }
+       }
+    }
   }
 
-  function done(err) {
+  function done(err, results) {
     if (err) stage.error(err);
-    stage.end();
+
+    /// TODO: detect test errors in results
+    stage.end(results);
   }
 
 };
