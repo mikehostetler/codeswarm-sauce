@@ -11,7 +11,7 @@ module.exports = test;
 
 function test(build, stage, config, context) {
 
-  if (! config.urls) return stage.error(new Error('Need config.urls'));
+  if (! config.files) return stage.error(new Error('Need config.files'));
 
   var tunnel = context.sauce && context.sauce.tunnel;
   if (! tunnel) return stage.error(new Error('No tunnel is set up'));
@@ -19,7 +19,7 @@ function test(build, stage, config, context) {
   var framework = config.framework;
   if (! framework) return stage.error(new Error('Need config.framework'));
 
-  var urls = config.urls.split('\n').map(trim);
+  var urls = config.files.split('\n').map(trim).map(fileToURL);
 
   var browsers = config.browsers;
   if (! browsers) return stage.error(new Error('Need config.browsers'));
@@ -116,6 +116,11 @@ function testName(build) {
 
 function trim(s) {
   return s.trim();
+}
+
+function fileToURL(file) {
+  if (file.charAt(0) != '/') file = '/' + file;
+  return 'http://localhost:8080' + file;
 }
 
 function parsePlatforms(browsers){

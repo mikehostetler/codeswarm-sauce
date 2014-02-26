@@ -15,8 +15,8 @@ module.exports = [
     required: true
   },
   {
-    name: 'urls',
-    label: 'URLs (one per line)',
+    name: 'files',
+    label: 'Test files (one per line)',
     type: 'text',
     required: true
   },
