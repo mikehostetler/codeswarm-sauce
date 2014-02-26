@@ -49,7 +49,7 @@ function test(build, stage, config, context) {
       }
     };
 
-    console.log('[cdodeswarm-browser] Sending request to Saucelabs: %j', requestParams);
+    console.log('[codeswarm-browser] Sending request to Saucelabs: %j', requestParams);
 
     request(requestParams, function(err, response, body) {
 
