@@ -12,6 +12,8 @@ module.exports = test;
 
 function test(build, stage, config, context) {
 
+  stage.fakeCommand('starting tests in saucelabs');
+
   if (! config.files) return stage.error(new Error('Need config.files'));
 
   var tunnel = context.sauce && context.sauce.tunnel;
