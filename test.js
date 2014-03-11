@@ -69,6 +69,9 @@ function test(build, stage, config, context) {
       });
     }
 
+
+    /// Polling for end
+
     function scheduleWorkerPoll() {
       setTimeout(pollWorker, POLL_FREQ_MS);
     }
@@ -96,13 +99,25 @@ function test(build, stage, config, context) {
     }
   }
 
+
+  /// Test ended
+
   function done(err, results) {
     if (err) stage.error(err);
 
     var failed = false;
 
+    results = parseResults(results);
+
+    if (results.errors.length)
+      stage.error(new Error(results.errors.join('\n')));
+
+    stage.end({browsers: results.results});
+  }
+
+  function parseResults(results) {
     var url, urlResult, browser, browserResult;
-    var finalResults = {};
+    var finalResults = {}, errors = [];
     for(var urlIndex = 0 ; urlIndex < urls.length; urlIndex ++) {
       url = urls[urlIndex];
       urlResult = results[urlIndex];
@@ -112,20 +127,22 @@ function test(build, stage, config, context) {
         browserResult = urlResult[browserIndex];
         finalResults[url][browser] = browserResult;
 
-        if (browserResult.failed)
-          fail(
-            new Error('Tests on browser ' + browser + ' had ' + browserResult.failed + ' failures'));
+        console.log('BROWSER RESULT: %j', browserResult);
+
+        if (browserResult && browserResult.results && browserResult.results.failed) {
+          errors.push(
+            'Tests on browser ' + browser +
+            ' had ' + browserResult.results.failed + ' failures: ' +
+            (browserResult.errors || ['unknown']).join('\n'));
+
+        }
       }
     }
 
-    stage.end({browsers: finalResults});
-
-    function fail(err) {
-      if (! failed) {
-        failed = true;
-        stage.end(err);
-      }
-    }
+    return {
+      errors: errors,
+      results: finalResults
+    };
   }
 
 };
@@ -133,7 +150,7 @@ function test(build, stage, config, context) {
 /// Misc
 
 function testName(build) {
-  return 'Testing ' + build.project + ', branch ' + build.branch + ', commit ' + build.commit;
+  return 'CodeSwarm: Testing ' + build.project + ', branch ' + build.branch + ', commit ' + build.commit;
 }
 
 function trim(s) {
