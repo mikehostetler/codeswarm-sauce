@@ -17,6 +17,7 @@
   "dependencies": {
     "request": "~2.34.0",
     "async": "~0.2.10",
-    "node-uuid": "~1.4.1"
+    "node-uuid": "~1.4.1",
+    "wd": "~0.2.12"
   }
 }

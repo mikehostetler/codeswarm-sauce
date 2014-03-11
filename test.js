@@ -1,8 +1,9 @@
 var async   = require('async');
-var request = require('request').defaults({ jar: false });
+var wd      = require('wd');
 var resultParsers = require('./result_parsers');
 
-var STATUS_POLLING_INTERVAL_MS = 5000;
+var TEST_TIMEOUT_SECS = 60 * 45; // 45 minutes
+var POLL_FREQ_MS = 10 * 1000; // 10 seconds
 
 module.exports = test;
 
@@ -29,84 +30,119 @@ function test(build, stage, config, context) {
   async.map(urls, testOneUrl, done);
 
   function testOneUrl(url, cb) {
+    async.map(platforms, testOneUrlOneBrowser.bind(null, url), cb);
+  }
 
-    var requestParams = {
-      method: 'post',
-      url: 'https://saucelabs.com/rest/v1/' + config.sauce_username + '/js-tests',
-      auth: {
-        user: config.sauce_username,
-        pass: config.sauce_access_key
-      },
-      json: true,
-      body: {
-        platforms: platforms,
-        url: url,
-        framework: framework,
-        name: testName(build),
-        tags: ['codeswarm', build.project],
-        build: build._id,
-        tunnel: "tunnel-identifier:" + tunnel.identifier
+  function testOneUrlOneBrowser(url, browser, cb) {
+    var worker = wd.remote(
+      "ondemand.saucelabs.com",
+      80,
+      config.sauce_username,
+      config.sauce_access_key);
+
+    worker.done = false;
+
+    worker.init({
+      browserName: browser.name,
+      version: browser.version,
+      platform: browser.platform,
+      name: testName(build),
+      'idle-timeout': TEST_TIMEOUT_SECS,
+      'max-duration': TEST_TIMEOUT_SECS,
+      'command-timeout': 600,
+      'tunnel-identifier': context.sauce.tunnel.identifier,
+      'disable-popup-handler': false
+    }, workerInitialized);
+
+    function workerInitialized(err) {
+      if (err) {
+        console.log("Error creating Sauce worker: ")
+        console.error(err);
+        return cb(err);
       }
-    };
+      worker.title(function(err, title) {
+        console.log('[saucelabs] TESTING URL %j', url);
+        worker.get(url, function(err) {
+          if (err) cb(err);
+          else scheduleWorkerPoll()
+        });
+      });
+    }
 
-    console.log('[codeswarm-browser] Sending request to Saucelabs: %j', requestParams);
 
-    request(requestParams, function(err, response, body) {
+    /// Polling for end
 
-      if (err) return cb(err);
-      var testIds = body['js tests'];
+    function scheduleWorkerPoll() {
+      setTimeout(pollWorker, POLL_FREQ_MS);
+    }
 
-      if (! testIds || ! testIds.length){
-        return cb(new Error('Error starting tests in Sauce labs: ' + JSON.stringify(body)));
+    function pollWorker() {
+      worker.eval('window.__codeswarm && window.__codeswarm.ended', gotPollResults);
+    }
+
+    function gotPollResults(err, ended) {
+      if (err) cb(err);
+      else {
+        console.log('poll results: %j', ended);
+        if (ended) testEnded();
+        else scheduleWorkerPoll();
       }
+    }
 
-      async.map(testIds, checkStatus, cb);
+    function testEnded() {
+      worker.eval('window.__codeswarm && window.__codeswarm.results', gotResults);
+    }
 
-    });
-
-    function checkStatus(testId, cb) {
-       var requestParams = {
-         method: 'post',
-         url: 'https://saucelabs.com/rest/v1/' + config.sauce_username + '/js-tests/status',
-         auth: {
-           user: config.sauce_username,
-           pass: config.sauce_access_key
-         },
-         json: true,
-         body: {
-           "js tests": [testId],
-         }
-       };
-
-       _checkStatus();
-
-       function _checkStatus() {
-        request(requestParams, replied);
-
-        function replied(err, res, body) {
-          console.log('[codeswarm-browser] STATUS REPLY: %j'.yellow, body);
-          if (err) return cb(err);
-          var results = body['js tests'];
-
-          if (results && results[0] && results[0].status == 'test error')
-            return cb(new Error('Sauce Labs test error'));
-
-          if (! body.completed) {
-            /// call me later
-            setTimeout(_checkStatus, STATUS_POLLING_INTERVAL_MS);
-          } else {
-            cb(null, [0]);
-          }
-        }
-       }
+    function gotResults(err, results) {
+      worker.quit();
+      cb(err, results);
     }
   }
+
+
+  /// Test ended
 
   function done(err, results) {
     if (err) stage.error(err);
 
-    /// TODO: detect test errors in results
-    stage.end(results);
+    var failed = false;
+
+    results = parseResults(results);
+
+    if (results.errors.length)
+      stage.error(new Error(results.errors.join('\n')));
+
+    stage.end({browsers: results.results});
+  }
+
+  function parseResults(results) {
+    var url, urlResult, browser, browserResult;
+    var finalResults = {}, errors = [];
+    for(var urlIndex = 0 ; urlIndex < urls.length; urlIndex ++) {
+      url = urls[urlIndex];
+      urlResult = results[urlIndex];
+      finalResults[url] = {};
+      for(var browserIndex = 0 ; browserIndex < browsers.length;  browserIndex ++) {
+        browser = browsers[browserIndex];
+        browserResult = urlResult[browserIndex];
+        finalResults[url][browser] = browserResult;
+
+        console.log('BROWSER RESULT: %j', browserResult);
+
+        if (browserResult && browserResult.results && browserResult.results.failed) {
+          errors.push(
+            'Tests on browser ' + browser +
+            ' had ' + browserResult.results.failed + ' failures: ' +
+            (browserResult.errors || ['unknown']).join('\n'));
+
+        }
+      }
+    }
+
+    return {
+      errors: errors,
+      results: finalResults
+    };
   }
 
 };
@@ -114,7 +150,7 @@ function test(build, stage, config, context) {
 /// Misc
 
 function testName(build) {
-  return 'Testing ' + build.project + ', branch ' + build.branch + ', commit ' + build.commit;
+  return 'CodeSwarm: Testing ' + build.project + ', branch ' + build.branch + ', commit ' + build.commit;
 }
 
 function trim(s) {
@@ -128,6 +164,11 @@ function fileToURL(file) {
 
 function parsePlatforms(browsers){
   return browsers.map(function(browser){
-    return browser.split('-');
+    var parts = browser.split('-');
+    return {
+      name: parts[1],
+      version: parts[2],
+      platform: parts[0]
+    };
   });
 };

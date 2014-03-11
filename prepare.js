@@ -39,6 +39,12 @@ function prepare(build, stage, config, context) {
 
     args.push('--port', '8080');
 
+    var files = config.files;
+    if (! Array.isArray(files)) files = [files];
+    files.forEach(function(file) {
+      args.push('--inject', file + ':' + config.framework);
+    });
+
     var gateway = stage.command('codeswarm-gateway', args, { background: true });
     gateway.stdout.setEncoding('utf8');
     gateway.stdout.on('data', onGatewayData);
