@@ -22,7 +22,7 @@ function test(build, stage, config, context) {
   var framework = config.framework;
   if (! framework) return stage.error(new Error('Need config.framework'));
 
-  var urls = config.files.split('\n').map(trim).map(fileToURL);
+  var urls = config.files.split('\n').map(trim).map(fileToURL, config);
 
   var browsers = config.browsers;
   if (! browsers) return stage.error(new Error('Need config.browsers'));
@@ -159,9 +159,9 @@ function trim(s) {
   return s.trim();
 }
 
-function fileToURL(file) {
+function fileToURL(file, config) {
   if (file.charAt(0) != '/') file = '/' + file;
-  return 'http://localhost:8080' + file;
+  return 'http://localhost:' + (config.server_port || '8080') + file;
 }
 
 function parsePlatforms(browsers){

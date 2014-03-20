@@ -40,6 +40,21 @@ module.exports = [
     type: 'text'
   },
   {
+    name: 'server_start_script',
+    label: 'Server start script (goes to background)',
+    type: 'string'
+  },
+  {
+    name: 'server_start_wait',
+    label: 'Server bootup wait (seconds, defaults to 5)',
+    type: 'string'
+  },
+  {
+    name: 'server_port',
+    label: 'Server port (default is 8080)',
+    type: 'string'
+  },
+  {
     name: 'browsers',
     label: 'Browsers',
     type: 'selectMultiple',

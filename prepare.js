@@ -6,7 +6,7 @@ function prepare(build, stage, config, context) {
 
   async.series([
     runBeforeScripts,
-    startGateway
+    startServer
   ], done);
 
   function runBeforeScripts(cb) {
@@ -26,6 +26,18 @@ function prepare(build, stage, config, context) {
     }
   }
 
+  function startServer(cb) {
+    if (config.server_start_script) startServer(cb);
+    else startGateway(cb);
+  }
+
+  function startServer(cb) {
+    var serverOptions = {background:true, silent: true};
+    var server =
+      stage.command('bash', ['-c', config.server_start_script], serverOptions);
+    setTimeout(cb, (config.server_start_wait || 5) * 1000);
+  }
+
   function startGateway(cb) {
     var types = config.types || [];
     if (!Array.isArray(types)) types = [types];
@@ -37,7 +49,7 @@ function prepare(build, stage, config, context) {
 
     args.push('--docroot', '.');
 
-    args.push('--port', '8080');
+    args.push('--port', config.server_port || '8080');
 
     var files = config.files;
     if (! Array.isArray(files)) files = [files];
