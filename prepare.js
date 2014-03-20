@@ -27,11 +27,11 @@ function prepare(build, stage, config, context) {
   }
 
   function startServer(cb) {
-    if (config.server_start_script) startServer(cb);
+    if (config.server_start_script) startCustomServer(cb);
     else startGateway(cb);
   }
 
-  function startServer(cb) {
+  function startCustomServer(cb) {
     var serverOptions = {background:true, silent: true};
     var server =
       stage.command('bash', ['-c', config.server_start_script], serverOptions);
