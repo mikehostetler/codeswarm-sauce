@@ -147,7 +147,7 @@ function test(build, stage, config, context) {
     };
   }
 
-  function fileToURL(file, config) {
+  function fileToURL(file) {
     if (file.charAt(0) != '/') file = '/' + file;
     return 'http://localhost:' + (config.server_port || '8080') + file;
   }
