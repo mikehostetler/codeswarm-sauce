@@ -149,7 +149,7 @@ function test(build, stage, config, context) {
 
   function fileToURL(file) {
     if (file.charAt(0) != '/') file = '/' + file;
-    return 'http://localhost:8080' + file;
+    return 'http://localhost:' + context.port + file;
   }
 
 };
