@@ -1,3 +1,5 @@
+var ports = require('./ports');
+
 var async = require('async');
 
 module.exports = prepare;
@@ -47,7 +49,7 @@ function prepare(build, stage, config, context) {
 
     args.push('--docroot', '.');
 
-    args.push('--port', '8080');
+    args.push('--ports', ports.join(','));
 
     if (config.server_start_script && config.server_port) {
       args.push('--proxy', config.server_port);
@@ -79,8 +81,9 @@ function prepare(build, stage, config, context) {
     }
 
     function detectSuccess() {
-      var match = out.match(/listening on port/);
+      var match = out.match(/listening on port ([0-9]+)/);
       if (match) {
+        context.port = match[1];
         success = true;
         cb();
       }
