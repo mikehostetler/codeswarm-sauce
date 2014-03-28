@@ -6,7 +6,8 @@ function prepare(build, stage, config, context) {
 
   async.series([
     runBeforeScripts,
-    startServer
+    startCustomServer,
+    startGateway
   ], done);
 
   function runBeforeScripts(cb) {
@@ -26,12 +27,9 @@ function prepare(build, stage, config, context) {
     }
   }
 
-  function startServer(cb) {
-    if (config.server_start_script) startCustomServer(cb);
-    else startGateway(cb);
-  }
-
   function startCustomServer(cb) {
+    if (! config.server_start_script || ! config.server_port) return cb();
+
     var serverOptions = {background:true, silent: true};
     var server =
       stage.command('bash', ['-c', config.server_start_script], serverOptions);
@@ -49,7 +47,11 @@ function prepare(build, stage, config, context) {
 
     args.push('--docroot', '.');
 
-    args.push('--port', config.server_port || '8080');
+    args.push('--port', '8080');
+
+    if (config.server_start_script && config.server_port) {
+      args.push('--proxy', config.server_port);
+    }
 
     var files = config.files;
     if (! Array.isArray(files)) files = [files];
@@ -60,9 +62,14 @@ function prepare(build, stage, config, context) {
     var gateway = stage.command('codeswarm-gateway', args, { background: true });
     gateway.stdout.setEncoding('utf8');
     gateway.stdout.on('data', onGatewayData);
+    gateway.stderr.setEncoding('utf8');
+    gateway.stderr.on('data', onGatewayStdError);
+
+    gateway.once('close', onGatewayClose);
 
     var success = false;
     var out = '';
+    var error = '';
     function onGatewayData(d) {
       console.log('[GATEWAY] %s'.yellow, d);
       if (! success) {
@@ -76,6 +83,18 @@ function prepare(build, stage, config, context) {
       if (match) {
         success = true;
         cb();
+      }
+    }
+
+    function onGatewayStdError(d) {
+      console.log('[GATEWAY] (stderr) %s'.yellow, d);
+      error += d;
+    }
+
+    function onGatewayClose(code, signal) {
+      console.log('[GATEWAY] Closed (code=%s, signal=%s)', code, signal);
+      if (code != 0) {
+        stage.error(new Error('Gateway closed with code ' + code + '. stderr = ' + error));
       }
     }
   }
