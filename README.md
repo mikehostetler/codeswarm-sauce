@@ -6,6 +6,32 @@ This plugin extends CodeSwarm to facilitate cross-browser testing.  It requires 
 
 * SAUCE_JAR: path to the Sauce Labs connect Jar file.
 
+## Development environment
+
+Requisites:
+
+### codeswarm-gateway
+
+Have codeswarm-gateway globally installed. For now you can do it like this:
+
+```
+$ git clone git@github.com:codeswarm/codeswarm-gateway.git
+$ cd codeswarm-gateway
+$ npm link
+```
+
+### php-cgi
+
+If you're running php tests you must have php-cgi executable installed.
+
+In Mac with Homebrew you can install it like this:
+
+```bash
+$ brew tap homebrew/dupes
+$ brew tap josegonzalez/homebrew-php
+$ brew install php54
+```
+
 ## License Information
 
 This project has been released under the [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html), the text of which is included below. This license applies ONLY to the source of this repository and does not extend to any other CodeSwarm distribution or variant, or any other 3rd party libraries used in a repository. 

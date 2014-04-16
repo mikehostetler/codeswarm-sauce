@@ -1,22 +1,24 @@
 {
-  "name": "codeswarm-browser",
+  "name": "codeswarm-sauce",
   "version": "0.0.1",
   "description": "CodeSwarm Plugin for doing browser tests",
   "private": true,
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/CodeSwarm/codeswarm-browser.git"
+    "url": "git://github.com/CodeSwarm/codeswarm-sauce.git"
   },
   "author": "CodeSwarm",
   "license": "Apache 2",
   "bugs": {
-    "url": "https://github.com/CodeSwarm/codeswarm-browser/issues"
+    "url": "https://github.com/CodeSwarm/codeswarm-sauce/issues"
   },
-  "homepage": "https://github.com/CodeSwarm/codeswarm-browser",
+  "homepage": "https://github.com/CodeSwarm/codeswarm-sauce",
   "dependencies": {
     "request": "~2.34.0",
-    "async": "~0.2.10"
+    "async": "~0.2.10",
+    "node-uuid": "~1.4.1",
+    "wd": "~0.2.12"
   },
   "devDependencies": {
     "mocha": "^1.18.2"

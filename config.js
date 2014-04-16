@@ -15,8 +15,8 @@ module.exports = [
     required: true
   },
   {
-    name: 'urls',
-    label: 'URLs (one per line)',
+    name: 'files',
+    label: 'Test files (one per line)',
     type: 'text',
     required: true
   },
@@ -25,6 +25,34 @@ module.exports = [
     label: 'Framework',
     type: 'selectOne',
     from: frameworks
+  },
+  {
+    name: 'types',
+    label: 'File types',
+    type: 'selectMultiple',
+    from: [
+      'php'
+    ]
+  },
+  {
+    name: 'before_script',
+    label: 'Before test scripts (one per line)',
+    type: 'text'
+  },
+  {
+    name: 'server_start_script',
+    label: 'Server start script (goes to background)',
+    type: 'string'
+  },
+  {
+    name: 'server_start_wait',
+    label: 'Server bootup wait (seconds, defaults to 5)',
+    type: 'string'
+  },
+  {
+    name: 'server_port',
+    label: 'Server port (default is 8080)',
+    type: 'string'
   },
   {
     name: 'browsers',

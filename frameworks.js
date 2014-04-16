@@ -1,6 +1,7 @@
 module.exports = [
-  'jasmine',
+  // 'jasmine',
   'qunit',
-  'mocha',
-  'YUI Test'
+  // 'mocha',
+  // 'YUI Test',
+  'Buster'
 ];
